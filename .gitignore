@@ -1,0 +1,21 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# known binaries
+cmd/standalone/standalone
+cmd/web/web
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the pprof files
+*.out
+
+
+# Dependency directories
+**/vendor
+**/.DS_Store
