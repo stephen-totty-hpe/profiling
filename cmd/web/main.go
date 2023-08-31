@@ -3,7 +3,10 @@ package main
 import (
 	"log"
 	"net/http"
+
+	// this import is the key to automatic metrics being added
 	_ "net/http/pprof"
+
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,6 +16,7 @@ import (
 
 // see https://pkg.go.dev/runtime/pprof
 // ./web
+// http://localhost:6060/debug/pprof/
 func main() {
 
 	sigs := make(chan os.Signal, 1)
