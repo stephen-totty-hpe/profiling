@@ -12,3 +12,7 @@ import (
 func BenchmarkTightLoop(b *testing.B) {
 	NewBadCpu().TightLoop()
 }
+
+func TestTightLoop(t *testing.T) {
+	NewBadCpu().TightLoop()
+}

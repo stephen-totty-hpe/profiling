@@ -12,3 +12,7 @@ import (
 func BenchmarkNotEnoughChannels(b *testing.B) {
 	NewBadGoRoutine().NotEnoughChannels()
 }
+
+func TestNotEnoughChannels(t *testing.T) {
+	NewBadGoRoutine().NotEnoughChannels()
+}

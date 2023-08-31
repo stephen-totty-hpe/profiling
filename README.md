@@ -45,22 +45,32 @@ You can also run like so:
 
 As mentioned in the [pprof documentation](https://pkg.go.dev/runtime/pprof#hdr-Profiling_a_Go_program), you can embed the creating of profiles into your code.  An example can be seen [here](cmd/standalone/main.go).
 
+## Exposed profiles
+Here is a list of profiles in pprof
+```
+	profiles.m = map[string]*Profile{
+		"goroutine":    goroutineProfile,
+		"threadcreate": threadcreateProfile,
+		"heap":         heapProfile,
+		"allocs":       allocsProfile,
+		"block":        blockProfile,
+		"mutex":        mutexProfile,
+	}
+```
+
 ## pprof.StartCPUProfile
 ```
     import "runtime/pprof"
 
-    // Create a CPU profile file
-    f, err := os.Create("cpu.prof")
-    if err != nil {
-        panic(err)
-    }
-    defer f.Close()
-
-    // Start CPU profiling
-    if err := pprof.StartCPUProfile(f); err != nil {
-        panic(err)
-    }
-    defer pprof.StopCPUProfile()
+	f, err := os.Create(*cpuprofile)
+	if err != nil {
+		log.Fatal("could not create CPU profile: ", err)
+	}
+	defer f.Close() // error handling omitted for example
+	if err := pprof.StartCPUProfile(f); err != nil {
+		log.Fatal("could not start CPU profile: ", err)
+	}
+	defer pprof.StopCPUProfile()
 ```
 Then run: ```go tool pprof -http=:8080 cpu.prof```
 
@@ -68,66 +78,68 @@ Then run: ```go tool pprof -http=:8080 cpu.prof```
 ```
     import "runtime/pprof"
 
-    // Create a memory profile file
-    memProfileFile, err := os.Create("mem.prof")
-    if err != nil {
-        panic(err)
-    }
-    defer memProfileFile.Close()
-
-    // Write memory profile to file
-    if err := pprof.WriteHeapProfile(memProfileFile); err != nil {
-        panic(err)
-    }
+	f, err := os.Create(*memprofile)
+	if err != nil {
+		log.Fatal("could not create memory profile: ", err)
+	}
+	defer f.Close() // error handling omitted for example
+	runtime.GC()    // get up-to-date statistics
+	if err := pprof.WriteHeapProfile(f); err != nil {
+		log.Fatal("could not write memory profile: ", err)
+	}
 ```
 Then run: ```go tool pprof -http=:8080 mem.prof```
 
-## runtime.SetBlockProfileRate
+## pprof.Lookup("block")
 ```
-runtime.SetBlockProfileRate(100_000_000) // WARNING: Can cause some CPU overhead
-file, _ := os.Create("./block.prof")
-defer pprof.Lookup("block").WriteTo(file, 0)
+	runtime.SetBlockProfileRate(100000000) // WARNING: Can cause some CPU overhead
+	f, err := os.Create(*blockprofile)
+	if err != nil {
+		log.Fatal("could not create block profile: ", err)
+	}
+	defer f.Close() // error handling omitted for example
+	defer pprof.Lookup("block").WriteTo(f, 0)
 ```
 Then run: ```go tool pprof -http=:8080 block.prof```
 
-## runtime.SetMutexProfileRate(rate)
+## pprof.Lookup("mutex")
 ```
-runtime.SetMutexProfileFraction(100)
-file, _ := os.Create("./mutex.prof")
-defer pprof.Lookup("mutex").WriteTo(file, 0)
+    import "runtime/pprof"
+
+	runtime.SetMutexProfileFraction(100)
+	f, err := os.Create(*mutexprofile)
+	if err != nil {
+		log.Fatal("could not create mutex profile: ", err)
+	}
+	defer pprof.Lookup("mutex").WriteTo(f, 0)
 ```
 Then run: ```go tool pprof -http=:8080 mutex.prof```
 
-## runtime.GoroutineProfile()
-
-## profile := pprof.Lookup("goroutine")
+## pprof.Lookup("goroutine")
 ```
-Each Profile has a unique name. A few profiles are predefined:
-
-goroutine - stack traces of all current goroutines
-heap - a sampling of all heap allocations
-threadcreate - stack traces that led to the creation of new OS threads
-block - stack traces that led to blocking on synchronization primitives
-
-file, _ := os.Create("./goroutine.prof")
-pprof.Lookup("goroutine").(file, 0)
+	pprof.Lookup("goroutine")
+	f, err := os.Create(*goroutineprofile)
+	if err != nil {
+		log.Fatal("could not create goroutine profile: ", err)
+	}
+	defer pprof.Lookup("goroutine").WriteTo(f, 0)
 ```
+Then run: ```go tool pprof -http=:8080 goroutine.prof```
 
 ## trace.Start
 ```
     import "runtime/trace"
 
-    // Start tracing
-    traceFile, err := os.Create("trace.prof")
-    if err != nil {
-        panic(err)
-    }
-    defer traceFile.Close()
+	traceFile, err := os.Create(*traceprofile)
+	if err != nil {
+		panic(err)
+	}
+	defer traceFile.Close()
 
-    if err := trace.Start(traceFile); err != nil {
-        panic(err)
-    }
-    defer trace.Stop()
+	if err := trace.Start(traceFile); err != nil {
+		panic(err)
+	}
+	defer trace.Stop()
 ```
 Then run: ```go tool trace trace.prof```
 
@@ -139,13 +151,3 @@ You can also enable a REST handler using [http pprof](https://pkg.go.dev/net/htt
 
 If you have access to GoLand and can simulate the issues locally, 
 you can check out [article](https://blog.jetbrains.com/go/2023/02/02/profiling-go-code-with-goland/).  There is also a slightly older [article](https://blog.jetbrains.com/go/2019/04/03/profiling-go-applications-and-tests/) that might provide some more information.
-
-# 
-
-https://www.youtube.com/watch?v=xxDZuPEgbBU
-
-https://github.com/bradfitz/talk-yapc-asia-2015/blob/master/talk.md
-
-https://www.youtube.com/watch?v=HEwSkhr_8_M
-
-https://github.com/DataDog/go-profiler-notes/blob/main/guide/README.md

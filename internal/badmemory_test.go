@@ -13,3 +13,7 @@ func BenchmarkContinuallyAddMore(b *testing.B) {
 	b.ReportAllocs()
 	NewBadMemory().ContinuallyAddMore()
 }
+
+func TestContinuallyAddMore(t *testing.T) {
+	NewBadMemory().ContinuallyAddMore()
+}
